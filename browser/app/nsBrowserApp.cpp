@@ -286,6 +286,8 @@ sizeof(XPCOM_DLL) - 1))
 int main(int argc, char* argv[])
 {
   mozilla::TimeStamp start = mozilla::TimeStamp::Now();
+  fprintf(stderr, "hello from matz\n"); //matz wuz here
+
 
 #ifdef XP_MACOSX
   TriggerQuirks();
