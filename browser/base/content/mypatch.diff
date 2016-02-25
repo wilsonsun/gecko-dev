@@ -1,0 +1,59 @@
+# HG changeset patch
+# User Wilson <wilson.sun@mail.utoronto.ca>
+# Date 1456265782 18000
+#      Tue Feb 23 17:16:22 2016 -0500
+# Node ID dbe1a32610cebca59394c042ba1b1b0c54feecee
+# Parent  a9e33d8c48b5ca93ca1937eba4220f681a0f05ec
+patch for bug 968035
+
+diff --git a/browser/base/content/browser-syncui.js b/browser/base/content/browser-syncui.js
+--- a/browser/base/content/browser-syncui.js
++++ b/browser/base/content/browser-syncui.js
+@@ -45,24 +45,25 @@ var gSyncUI = {
+     }
+ 
+     // Sync isn't ready yet, but we can still update the UI with an initial
+     // state - we haven't called initUI() yet, but that's OK - that's more
+     // about observers for state changes, and will be called once Sync is
+     // ready to start sending notifications.
+     this.updateUI();
+ 
+-    Services.obs.addObserver(this, "weave:service:ready", true);
++    this.weaveService.whenLoaded(function() { 
++	this.initUI();
++    });
+ 
+     // Remove the observer if the window is closed before the observer
+     // was triggered.
+     window.addEventListener("unload", function onUnload() {
+       gSyncUI._unloaded = true;
+       window.removeEventListener("unload", onUnload, false);
+-      Services.obs.removeObserver(gSyncUI, "weave:service:ready");
+ 
+       if (Weave.Status.ready) {
+         gSyncUI._obs.forEach(function(topic) {
+           Services.obs.removeObserver(gSyncUI, topic);
+         });
+       }
+     }, false);
+   },
+@@ -465,19 +466,16 @@ var gSyncUI = {
+         this.onLoginError();
+         break;
+       case "weave:service:logout:finish":
+         this.onLogout();
+         break;
+       case "weave:service:start-over:finish":
+         this.updateUI();
+         break;
+-      case "weave:service:ready":
+-        this.initUI();
+-        break;
+       case "weave:notification:added":
+         this.initNotifications();
+         break;
+     }
+   },
+ 
+   QueryInterface: XPCOMUtils.generateQI([
+     Ci.nsIObserver,
